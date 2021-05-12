@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/justpuzey/employee-tracker/issues"
   },
-  "homepage": "https://github.com/justpuzey/employee-tracker#readme"
+  "homepage": "https://github.com/justpuzey/employee-tracker#readme",
+  "dependencies": {
+    "inquirer": "^8.0.0",
+    "mysql2": "^2.2.5"
+  }
 }
