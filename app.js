@@ -28,6 +28,12 @@ const promptQuestions = () => {
         case 'Add a Role':
           newRole();
           break;
+        case 'Add an Employee':
+          newEmployee();
+          break;
+        case 'Update an Employee Role':
+          updateEmployeeRole();
+          break;
         case 'Exit':
           db.end();
           break;
@@ -86,43 +92,120 @@ const newDepartment = () => {
       message: 'Enter the name of the new Department:'
     }
   ]).then((answer) => {
-    // console.log(answer)
     db.query(`INSERT INTO departments(department_name) VALUES( ? )`, answer.newDepartment)
-    // allDepartments();
     promptQuestions();
   })
 }
 
 const newRole = () => {
-  inquirer.prompt([
-    {
-      name: 'newTitle',
-      type: 'input',
-      message: 'Enter the new Title:'
-    },
-    {
-      name: 'newSalary',
-      type: 'input',
-      message: 'Enter the salary for the new Title:'
-    }
-    // {
-    //     name: 'newDept',
+  db.query(`SELECT department_name FROM departments`, (err, results) => {
+    if (err) throw err;
+
+    inquirer.prompt([
+      {
+        name: 'newTitle',
+        type: 'input',
+        message: 'Enter the new Title:'
+      },
+      {
+        name: 'newSalary',
+        type: 'input',
+        message: 'Enter the salary for the new Title:'
+      },
+      {
+        name: 'newDept',
+        type: 'list',
+        choices: function () {
+          let optionsArray = results.map(options => options.department_name)
+          return optionsArray
+        },
+        message: 'Select the Department for this new Role:'
+      }
+    ]).then((answer) => {
+      db.query(
+        `INSERT INTO roles(title, salary, department_id) 
+          VALUES
+          ("${answer.newTitle}", "${answer.newSalary}", 
+          (SELECT id FROM departments WHERE department_name = "${answer.newDept}"));`
+      )
+      promptQuestions();
+    })
+  })
+}
+
+
+const newEmployee = () => {
+  db.query(`SELECT title FROM roles`, (err, results) => {
+    if (err) throw err;
+
+    inquirer.prompt([
+      {
+        name: 'firstName',
+        type: 'input',
+        message: 'Enter the new employee\'s first name:'
+      },
+      {
+        name: 'lastName',
+        type: 'input',
+        message: 'Enter the new employee\'s last name:'
+      },
+      {
+        name: 'role',
+        type: 'list',
+        choices: function () {
+          let optionsArray = results.map(options => options.title)
+          return optionsArray
+        },
+        message: 'Select the Role for this new employee:'
+      },
+      {
+        name: 'mgrID',
+        type: 'input',
+        message: 'Enter the new manger\'s ID:'
+      },
+    ]).then((answer) => {
+      db.query(
+        `INSERT INTO employees(first_name, last_name, role_id,manager_id) 
+          VALUES
+          ("${answer.firstName}", "${answer.lastName}", 
+          (SELECT id FROM roles WHERE title = "${answer.role}"),"${answer.mgrID}");`
+      )
+      promptQuestions();
+    })
+  })
+}
+
+
+const updateEmployeeRole = () => {
+  db.query(`SELECT CONCAT (employees.first_name," ",employees.last_name) AS full_name FROM employees`, (err, results) => {
+    if (err) throw err;
+    console.log(results)
+    // inquirer.prompt([
+    //   {
+    //     name: 'name',
     //     type: 'list',
     //     choices: function () {
-    //         let choiceArray = results[1].map(choice => choice.department_name);
-    //         return choiceArray;
+    //       let optionsArray = results.map(options => options.full_name)
+    //       return optionsArray
     //     },
-    //     message: 'Select the Department for this new Title:'
-    // }
-  ]).then((answer) => {
-    // console.log(answer)
-    db.query(
-      `INSERT INTO roles(title, salary, department_id) 
-      VALUES
-      ("${answer.newTitle}", "${answer.newSalary}", 
-      (SELECT id FROM departments WHERE department_name = "Sales"));`
-    )
-    // allDepartments();
+    //     message: 'Select the employee:'
+    //   },
+    //   {
+    //     name: 'role',
+    //     type: 'list',
+    //     choices: function () {
+    //       let optionsArray = results.map(options => options.title)
+    //       return optionsArray
+    //     },
+    //     message: 'Select the employee\'s new role:'
+    //   }
+    // ]).then((answer) => {
+    // db.query(
+    //   `UPDATE employees 
+    //       SET role_id = (SELECT id FROM roles WHERE title = ? ) 
+    //       WHERE id = (SELECT id FROM(SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ?) AS tmptable), [${answer.newRole}, ${answer.empl}]`
+    // )
     promptQuestions();
   })
+  // })
 }
