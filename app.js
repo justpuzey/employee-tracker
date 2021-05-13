@@ -2,6 +2,7 @@ const inquirer = require('inquirer');
 const db = require('./db/connection');
 
 const promptQuestions = () => {
+  console.log(" ")
   return inquirer.prompt([
     //Prompt with main menu of options
     {
@@ -14,24 +15,66 @@ const promptQuestions = () => {
     .then(answer => {
       switch (answer.menuChoice) {
         case 'View All Employees':
+          console.log(`
+
+--------------------------------------
+VIEW ALL EMPLOYEES
+--------------------------------------
+          `)
           allEmployees();
           break;
         case 'View All Departments':
+          console.log(`
+          
+--------------------------------------
+VIEW ALL DEPARTMENTS
+--------------------------------------
+          `)
           allDepartments();
           break;
         case 'View All Roles':
+          console.log(`
+          
+--------------------------------------
+VIEW ALL ROLES
+--------------------------------------
+          `)
           allRoles();
           break;
         case 'Add a Department':
+          console.log(`
+          
+--------------------------------------
+ADD A DEPARTMENT
+--------------------------------------
+          `)
           newDepartment();
           break;
         case 'Add a Role':
+          console.log(`
+          
+--------------------------------------
+ADD A ROLE
+--------------------------------------
+          `)
           newRole();
           break;
         case 'Add an Employee':
+          console.log(`
+          
+--------------------------------------
+ADD A NEW EMPLOYEE
+--------------------------------------
+          `)
           newEmployee();
           break;
         case 'Update an Employee Role':
+          console.log(`
+          
+--------------------------------------
+UPDATE AN EMPLOYEE'S ROLE
+--------------------------------------
+          `)
           updateEmployeeRole();
           break;
         case 'Exit':
@@ -52,7 +95,6 @@ const allEmployees = () => {
   LEFT JOIN employees manager ON employees.manager_id = manager.id
   ORDER BY employees.id;`
   db.query(sql, (err, results) => {
-    if (err) throw err;
     console.table(results)
     promptQuestions();
     // process.exit(0)
@@ -62,7 +104,6 @@ const allEmployees = () => {
 const allDepartments = () => {
   const sql = `SELECT id AS "Department ID", department_name AS "Department Name" FROM departments`
   db.query(sql, (err, results) => {
-    if (err) throw err;
     console.log("")
     console.table(results)
     promptQuestions();
@@ -75,7 +116,6 @@ const allRoles = () => {
   FROM roles
   LEFT JOIN departments ON departments.id = roles.department_id`
   db.query(sql, (err, results) => {
-    if (err) throw err;
     console.table(results)
     promptQuestions();
   })
@@ -96,7 +136,6 @@ const newDepartment = () => {
 
 const newRole = () => {
   db.query(`SELECT department_name FROM departments`, (err, results) => {
-    if (err) throw err;
 
     inquirer.prompt([
       {
@@ -131,9 +170,7 @@ const newRole = () => {
 }
 
 const newEmployee = () => {
-  db.query(`SELECT title FROM roles`, (err, results) => {
-    if (err) throw err;
-
+  db.query(`SELECT CONCAT (employees.first_name," ",employees.last_name) AS full_name FROM employees;`, (err, results) => {
     inquirer.prompt([
       {
         name: 'firstName',
@@ -146,30 +183,64 @@ const newEmployee = () => {
         message: 'Enter the new employee\'s last name:'
       },
       {
-        name: 'role',
+        name: 'manager',
         type: 'list',
-        choices: function () {
-          let optionsArray = results.map(options => options.title)
-          return optionsArray
-        },
-        message: 'Select the Role for this new employee:'
-      },
-      {
-        name: 'mgrID',
-        type: 'input',
-        message: 'Enter the new manger\'s ID:'
-      },
+        choices: results.map(options => options.full_name),
+        message: 'Select the employee\'s manager:'
+      }
     ]).then((answer) => {
-      db.query(
-        `INSERT INTO employees(first_name, last_name, role_id,manager_id) 
-          VALUES
-          ("${answer.firstName}", "${answer.lastName}", 
-          (SELECT id FROM roles WHERE title = "${answer.role}"),"${answer.mgrID}");`
-      )
-      promptQuestions();
+      db.query(`SELECT title FROM roles;`, (err, results) => {
+        inquirer.prompt([
+          {
+            name: 'role',
+            type: 'list',
+            choices: results.map(options => options.title),
+            message: 'Select the employee\'s new role:'
+          }
+        ]).then((userResponse) => {
+          // console.log(answer.manager)
+          // console.log(userResponse.role)
+          db.query(
+            `INSERT INTO employees(first_name, last_name, role_id,manager_id) 
+              VALUES
+              ('${answer.firstName}', '${answer.lastName}',(SELECT id FROM roles WHERE title = "${userResponse.role}"),(SELECT id FROM(SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ?) AS tmptable))`, [answer.manager], (err, results) => {
+            promptQuestions();
+          }
+          )
+        }
+        )
+      })
     })
   })
 }
+
+// const newEmployee = () => {
+//   db.query(`SELECT title FROM roles`, (err, results) => {
+
+//     inquirer.prompt([
+//         type: 'list',
+//         choices: function () {
+//           let optionsArray = results.map(options => options.title)
+//           return optionsArray
+//         },
+//         message: 'Select the Role for this new employee:'
+//       },
+//       {
+//         name: 'mgrID',
+//         type: 'input',
+//         message: 'Enter the new manger\'s ID:'
+//       },
+//     ]).then((answer) => {
+//       db.query(
+//         `INSERT INTO employees(first_name, last_name, role_id,manager_id) 
+//           VALUES
+//           ("${answer.firstName}", "${answer.lastName}", 
+//           (SELECT id FROM roles WHERE title = "${answer.role}"),"${answer.mgrID}");`
+//       )
+//       promptQuestions();
+//     })
+//   })
+// }
 
 const updateEmployeeRole = () => {
   db.query(`SELECT CONCAT (employees.first_name," ",employees.last_name) AS full_name FROM employees;`, (err, results) => {
