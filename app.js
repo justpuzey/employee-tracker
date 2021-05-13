@@ -53,7 +53,6 @@ const allEmployees = () => {
   ORDER BY employees.id;`
   db.query(sql, (err, results) => {
     if (err) throw err;
-    // console.log(results)
     console.table(results)
     promptQuestions();
     // process.exit(0)
@@ -64,7 +63,6 @@ const allDepartments = () => {
   const sql = `SELECT id AS "Department ID", department_name AS "Department Name" FROM departments`
   db.query(sql, (err, results) => {
     if (err) throw err;
-    // console.log(results)
     console.log("")
     console.table(results)
     promptQuestions();
@@ -78,7 +76,6 @@ const allRoles = () => {
   LEFT JOIN departments ON departments.id = roles.department_id`
   db.query(sql, (err, results) => {
     if (err) throw err;
-    // console.log(results)
     console.table(results)
     promptQuestions();
   })
@@ -133,7 +130,6 @@ const newRole = () => {
   })
 }
 
-
 const newEmployee = () => {
   db.query(`SELECT title FROM roles`, (err, results) => {
     if (err) throw err;
@@ -175,37 +171,34 @@ const newEmployee = () => {
   })
 }
 
-
 const updateEmployeeRole = () => {
-  db.query(`SELECT CONCAT (employees.first_name," ",employees.last_name) AS full_name FROM employees`, (err, results) => {
-    if (err) throw err;
-    console.log(results)
-    // inquirer.prompt([
-    //   {
-    //     name: 'name',
-    //     type: 'list',
-    //     choices: function () {
-    //       let optionsArray = results.map(options => options.full_name)
-    //       return optionsArray
-    //     },
-    //     message: 'Select the employee:'
-    //   },
-    //   {
-    //     name: 'role',
-    //     type: 'list',
-    //     choices: function () {
-    //       let optionsArray = results.map(options => options.title)
-    //       return optionsArray
-    //     },
-    //     message: 'Select the employee\'s new role:'
-    //   }
-    // ]).then((answer) => {
-    // db.query(
-    //   `UPDATE employees 
-    //       SET role_id = (SELECT id FROM roles WHERE title = ? ) 
-    //       WHERE id = (SELECT id FROM(SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ?) AS tmptable), [${answer.newRole}, ${answer.empl}]`
-    // )
-    promptQuestions();
+  db.query(`SELECT CONCAT (employees.first_name," ",employees.last_name) AS full_name FROM employees;`, (err, results) => {
+    inquirer.prompt([
+      {
+        name: 'name',
+        type: 'list',
+        choices: results.map(options => options.full_name),
+        message: 'Select the employee:'
+      }
+    ]).then((answer) => {
+      db.query(`SELECT title FROM roles;`, (err, results) => {
+        inquirer.prompt([
+          {
+            name: 'role',
+            type: 'list',
+            choices: results.map(options => options.title),
+            message: 'Select the employee\'s new role:'
+          }
+        ]).then((userResponse) => {
+          db.query(
+            `UPDATE employees 
+              SET role_id = (SELECT id FROM roles WHERE title = ? ) 
+              WHERE id = (SELECT id FROM(SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ?) AS tmptable)`, [userResponse.role, answer.name], (err, results) => {
+            promptQuestions();
+          }
+          )
+        })
+      })
+    })
   })
-  // })
 }
