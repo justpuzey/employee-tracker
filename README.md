@@ -9,7 +9,6 @@
   * [Installation](#installation)
   * [Usage](#usage)
   * [Contributing](#contributing)
-  * [Tests](#tests)
   * [Questions](#questions)
   * [License](#license)
   
@@ -28,15 +27,27 @@
   * Select desired option for managing data by using the arrow keys on your keyboard to move up or down and pressing `Enter` to select. 
   * Once each task is completed, you will be prompted to complete another task, or to Exit.
 
+  ## Demo
+  <p><i>Instructions for application usage including examples:</i></p>
+
+  `Youtube Link:` https://www.youtube.com/watch?v=Q_a6ILp1aFw
+
+  ![Gif demo of Employee Tracker](./assets/demo.gif)
+
+  ## Technologies
+  <p><i>Summary of technologies used in the development of this application:</i></p>
+
+  * Node.js
+  * Enquirer - used to create user prompts in terminal
+  * Mysql2 - used to easily connect to database
+  * Console.Table - used to display sql query data
+
+
   ## Contributing
   <p><i>Guidelines for contributing to the project, including contributor covenant:</i></p>
 
   Contact jpuzey (see below)
 
-  ## Tests
-  <p><i>Below are examples of current application tests and instructions on how to run them:</i></p>
-
-  N/A
 
   ## Questions
   If you have any questions, please contact:</br>
