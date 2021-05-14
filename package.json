@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/justpuzey/employee-tracker#readme",
   "dependencies": {
+    "dotenv": "^9.0.2",
     "inquirer": "^8.0.0",
     "mysql2": "^2.2.5"
   }
